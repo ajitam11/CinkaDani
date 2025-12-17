@@ -143,6 +143,83 @@
             display: block;
         }
 
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            animation: popIn 0.5s ease;
+        }
+
+        .modal-title {
+            font-size: 4em;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .modal-close {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .modal-close:hover {
+            background: #5568d3;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
         .next-btn {
             padding: 8px 16px;
             background: #667eea;
@@ -186,6 +263,15 @@
             <button class="reveal-btn" id="revealBtn" onclick="revealSongName()">🎭 Prikaži naslov muske</button>
             <button class="next-btn" id="nextBtn" onclick="nextSong()" style="display: none;">➡️ Naslednja muska</button>
             <div class="real-name" id="realName"></div>
+        </div>
+    </div>
+
+    <!-- Full-screen modal for revealing song name -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div id="confettiContainer"></div>
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle"></div>
+            <button class="modal-close" onclick="closeModal()">✓ Zapri</button>
         </div>
     </div>
 
@@ -262,12 +348,18 @@
 
         function revealSongName() {
             if (!isRevealed && currentIndex !== null) {
-                const realNameDiv = document.getElementById('realName');
                 const revealBtn = document.getElementById('revealBtn');
                 const nextBtn = document.getElementById('nextBtn');
+                const modalOverlay = document.getElementById('modalOverlay');
+                const modalTitle = document.getElementById('modalTitle');
                 
-                realNameDiv.textContent = `${songs[currentIndex].realName}`;
-                realNameDiv.classList.add('show');
+                // Show full-screen modal
+                modalTitle.textContent = songs[currentIndex].realName;
+                modalOverlay.classList.add('show');
+                
+                // Create confetti
+                createConfetti();
+                
                 revealBtn.classList.add('revealed');
                 revealBtn.textContent = '✓ Razkrito!';
                 isRevealed = true;
@@ -277,6 +369,29 @@
                     nextBtn.style.display = 'inline-block';
                 }
             }
+        }
+
+        function createConfetti() {
+            const container = document.getElementById('confettiContainer');
+            container.innerHTML = ''; // Clear previous confetti
+            
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#ff1493'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = (Math.random() * -200 - 100) + 'px'; // Random starting height
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                container.appendChild(confetti);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            document.getElementById('confettiContainer').innerHTML = ''; // Clear confetti
         }
 
         function nextSong() {
@@ -316,4 +431,3 @@
     </script>
 </body>
 </html>
-
