@@ -229,16 +229,18 @@
             playSong(0);
         }
 
-        function playSong(index) {
+        function playSong(index, autoplay = true) {
             currentIndex = index;
             audioPlayer.src = songs[index].file;
             
-            // Try to play, handle autoplay blocking
-            const playPromise = audioPlayer.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("Autoplay blocked, user interaction needed");
-                });
+            // Try to play only if autoplay is true
+            if (autoplay) {
+                const playPromise = audioPlayer.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("Autoplay blocked, user interaction needed");
+                    });
+                }
             }
             
             currentSongDisplay.textContent = `${songs[index].displayName}`;
@@ -281,7 +283,7 @@
             if (currentIndex < songs.length - 1) {
                 currentIndex++;
                 songItems[currentIndex].classList.add('visible');
-                playSong(currentIndex);
+                playSong(currentIndex, false);
                 document.getElementById('nextBtn').style.display = 'none';
             }
         }
@@ -314,5 +316,4 @@
     </script>
 </body>
 </html>
-
 
