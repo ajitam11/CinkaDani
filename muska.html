@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .playlist {
+            list-style: none;
+        }
+
+        .song-item {
+            background: #f8f9fa;
+            margin: 10px 0;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .song-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .song-item.playing {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .song-number {
+            font-weight: bold;
+            font-size: 1.2em;
+            min-width: 30px;
+        }
+
+        .song-name {
+            flex: 1;
+            font-size: 1.1em;
+        }
+
+        .player-controls {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .current-song {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #856404;
+        }
+
+        .share-link {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 5px 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+            font-size: 0.8em;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .share-link:hover {
+            background: #5568d3;
+        }
+
+        .link-copied {
+            display: inline-block;
+            margin-left: 10px;
+            color: #28a745;
+            font-size: 0.9em;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .link-copied.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Music Player</h1>
+        
+        <ul class="playlist" id="playlist">
+           
+        </ul>
+
+        <div class="player-controls">
+            <div class="current-song" id="currentSong">Select a song to play</div>
+            <audio id="audioPlayer" controls>
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+
+        <div class="instructions">
+            <strong>📝 How to add your MP3 files:</strong><br>
+            1. Place your MP3 files in the same folder as this HTML file<br>
+            2. Edit the <code>songs</code> array in the script below (line ~140)<br>
+            3. Add your song filenames like: "song1.mp3", "song2.mp3"
+        </div>
+    </div>
+
+    <script>
+        // ADD YOUR MP3 FILES HERE
+        const songs = [
+            "file_example_MP3_5MG.mp3"
+        ];
+
+        const playlist = document.getElementById('playlist');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const currentSongDisplay = document.getElementById('currentSong');
+        let currentIndex = 0;
+
+        // Create playlist items
+        songs.forEach((song, index) => {
+            const li = document.createElement('li');
+            li.className = 'song-item';
+            li.innerHTML = `
+                <span class="song-number">${index + 1}</span>
+                <span class="song-name">${song}</span>
+                <a href="#" class="share-link" onclick="copyLink(${index}); return false;">📋 Copy Link</a>
+                <span class="link-copied" id="copied-${index}">✓ Copied!</span>
+            `;
+            li.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('share-link')) {
+                    playSong(index);
+                }
+            });
+            playlist.appendChild(li);
+        });
+
+        function playSong(index) {
+            currentIndex = index;
+            audioPlayer.src = songs[index];
+            
+            // Try to play, handle autoplay blocking
+            const playPromise = audioPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Autoplay blocked, user interaction needed");
+                });
+            }
+            
+            currentSongDisplay.textContent = `Now Playing: ${songs[index]}`;
+            
+            // Update visual state
+            document.querySelectorAll('.song-item').forEach((item, i) => {
+                item.classList.toggle('playing', i === index);
+            });
+        }
+
+        // Copy shareable link to clipboard
+        function copyLink(index) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('song', index);
+            
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                const copiedMsg = document.getElementById(`copied-${index}`);
+                copiedMsg.classList.add('show');
+                setTimeout(() => copiedMsg.classList.remove('show'), 2000);
+            });
+        }
+
+        // Check URL parameters and auto-play if song parameter exists
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const songIndex = urlParams.get('song');
+            
+            if (songIndex !== null && songIndex >= 0 && songIndex < songs.length) {
+                playSong(parseInt(songIndex));
+            }
+        });
+
+        // Auto-play next song when current ends
+        audioPlayer.addEventListener('ended', () => {
+            currentIndex = (currentIndex + 1) % songs.length;
+            playSong(currentIndex);
+        });
+    </script>
+</body>
+</html>
