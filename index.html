@@ -73,7 +73,7 @@
 
         .song-name {
             flex: 1;
-            font-size: 1.1em;
+            font-size: 2em;
         }
 
         .player-controls {
@@ -86,7 +86,7 @@
         .current-song {
             text-align: center;
             margin-bottom: 15px;
-            font-size: 1.1em;
+            font-size: 2em;
             color: #667eea;
             font-weight: bold;
         }
@@ -106,33 +106,67 @@
             color: #856404;
         }
 
-        .share-link {
-            display: inline-block;
-            margin-left: 10px;
-            padding: 5px 10px;
-            background: #667eea;
+        .reveal-btn {
+            padding: 8px 16px;
+            background: #28a745;
             color: white;
+            border: none;
             border-radius: 5px;
-            font-size: 0.8em;
-            text-decoration: none;
+            cursor: pointer;
+            font-size: 1.3em;
+            margin-top: 10px;
             transition: background 0.3s;
         }
 
-        .share-link:hover {
+        .reveal-btn:hover {
+            background: #218838;
+        }
+
+        .reveal-btn.revealed {
+            background: #6c757d;
+            cursor: default;
+        }
+
+        .real-name {
+            margin-top: 10px;
+            padding: 10px;
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            border-radius: 5px;
+            color: #155724;
+            font-weight: bold;
+            font-size: 2em;
+            display: none;
+        }
+
+        .real-name.show {
+            display: block;
+        }
+
+        .next-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+            margin-left: 10px;
+            transition: background 0.3s;
+            display: none;
+        }
+
+        .next-btn:hover {
             background: #5568d3;
         }
 
-        .link-copied {
-            display: inline-block;
-            margin-left: 10px;
-            color: #28a745;
-            font-size: 0.9em;
-            opacity: 0;
-            transition: opacity 0.3s;
+        .song-item {
+            display: none;
         }
 
-        .link-copied.show {
-            opacity: 1;
+        .song-item.visible {
+            display: flex;
         }
     </style>
 </head>
@@ -145,47 +179,59 @@
         </ul>
 
         <div class="player-controls">
-            <div class="current-song" id="currentSong">Select a song to play</div>
+            <div class="current-song" id="currentSong"></div>
             <audio id="audioPlayer" controls>
                 Your browser does not support the audio element.
             </audio>
+            <button class="reveal-btn" id="revealBtn" onclick="revealSongName()">🎭 Prikaži naslov muske</button>
+            <button class="next-btn" id="nextBtn" onclick="nextSong()" style="display: none;">➡️ Naslednja muska</button>
+            <div class="real-name" id="realName"></div>
         </div>
     </div>
 
     <script>
         // ADD YOUR MP3 FILES HERE
+        // Format: { file: "filename.mp3", displayName: "Mystery Song #1", realName: "Actual Song Name" }
         const songs = [
-            "file_example_MP3_5MG.mp3",
-            "file_example_MP3_2MG.mp3"
-            
+            { file: "Pesem, ki je izšla, ko sta se rodila.mp3", displayName: "Pesem, ki je izšla, ko sta se rodila", realName: "Oasis - Wonderwall" },
+            { file: "Pesem, ki je izšla, ko sta začela biti skupaj.mp3", displayName: "Pesem, ki je izšla, ko sta začela biti skupaj", realName: "Daddy Yankee - Con Calma" },
+            { file: "Pesem, ki je izšla leta, ko sta se poročila.mp3", displayName: "Pesem, ki je izšla leta, ko sta se poročila", realName: "Kendrick Lamar - Not Like Us" },
+            { file: "Pesem, ko sta postala polnoletna.mp3", displayName: "Pesem, ko sta postala polnoletna", realName: " Enrique Iglesias - Bailando" },
+            { file: "Pesem iz el Gato mix.mp3", displayName: "Pesem iz el Gato mix", realName: "Saša Kovečavić - Slučajno" },
         ];
 
         const playlist = document.getElementById('playlist');
         const audioPlayer = document.getElementById('audioPlayer');
         const currentSongDisplay = document.getElementById('currentSong');
         let currentIndex = 0;
+        let songItems = [];
+        let isRevealed = false;
 
-        // Create playlist items
+        // Create playlist items (hidden by default)
         songs.forEach((song, index) => {
             const li = document.createElement('li');
             li.className = 'song-item';
+            li.id = `song-${index}`;
             li.innerHTML = `
                 <span class="song-number">${index + 1}</span>
-                <span class="song-name">${song}</span>
-                <a href="#" class="share-link" onclick="copyLink(${index}); return false;">📋 Copy Link</a>
-                <span class="link-copied" id="copied-${index}">✓ Copied!</span>
+                <span class="song-name">${song.displayName}</span>
             `;
-            li.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('share-link')) {
-                    playSong(index);
-                }
+            li.addEventListener('click', () => {
+                playSong(index);
             });
             playlist.appendChild(li);
+            songItems.push(li);
         });
+
+        // Show first song
+        if (songs.length > 0) {
+            songItems[0].classList.add('visible');
+            playSong(0);
+        }
 
         function playSong(index) {
             currentIndex = index;
-            audioPlayer.src = songs[index];
+            audioPlayer.src = songs[index].file;
             
             // Try to play, handle autoplay blocking
             const playPromise = audioPlayer.play();
@@ -195,12 +241,49 @@
                 });
             }
             
-            currentSongDisplay.textContent = `Now Playing: ${songs[index]}`;
+            currentSongDisplay.textContent = `${songs[index].displayName}`;
+            
+            // Reset and show reveal button
+            isRevealed = false;
+            const revealBtn = document.getElementById('revealBtn');
+            revealBtn.style.display = 'inline-block';
+            revealBtn.classList.remove('revealed');
+            revealBtn.textContent = '🎭 Prikaži naslov muske';
+            document.getElementById('realName').classList.remove('show');
+            document.getElementById('nextBtn').style.display = 'none';
             
             // Update visual state
             document.querySelectorAll('.song-item').forEach((item, i) => {
                 item.classList.toggle('playing', i === index);
             });
+        }
+
+        function revealSongName() {
+            if (!isRevealed && currentIndex !== null) {
+                const realNameDiv = document.getElementById('realName');
+                const revealBtn = document.getElementById('revealBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                
+                realNameDiv.textContent = `${songs[currentIndex].realName}`;
+                realNameDiv.classList.add('show');
+                revealBtn.classList.add('revealed');
+                revealBtn.textContent = '✓ Razkrito!';
+                isRevealed = true;
+                
+                // Show next button if there are more songs
+                if (currentIndex < songs.length - 1) {
+                    nextBtn.style.display = 'inline-block';
+                }
+            }
+        }
+
+        function nextSong() {
+            if (currentIndex < songs.length - 1) {
+                currentIndex++;
+                songItems[currentIndex].classList.add('visible');
+                playSong(currentIndex);
+                document.getElementById('nextBtn').style.display = 'none';
+            }
         }
 
         // Copy shareable link to clipboard
@@ -221,14 +304,12 @@
             const songIndex = urlParams.get('song');
             
             if (songIndex !== null && songIndex >= 0 && songIndex < songs.length) {
+                // Show all songs up to the requested one
+                for (let i = 0; i <= songIndex; i++) {
+                    songItems[i].classList.add('visible');
+                }
                 playSong(parseInt(songIndex));
             }
-        });
-
-        // Auto-play next song when current ends
-        audioPlayer.addEventListener('ended', () => {
-            currentIndex = (currentIndex + 1) % songs.length;
-            playSong(currentIndex);
         });
     </script>
 </body>
