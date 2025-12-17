@@ -179,7 +179,6 @@
         </ul>
 
         <div class="player-controls">
-            <div class="current-song" id="currentSong"></div>
             <audio id="audioPlayer" controls>
                 Your browser does not support the audio element.
             </audio>
@@ -197,7 +196,7 @@
             { file: "Pesem, ki je izšla, ko sta začela biti skupaj.mp3", displayName: "Pesem, ki je izšla, ko sta začela biti skupaj", realName: "Daddy Yankee - Con Calma" },
             { file: "Pesem, ki je izšla leta, ko sta se poročila.mp3", displayName: "Pesem, ki je izšla leta, ko sta se poročila", realName: "Kendrick Lamar - Not Like Us" },
             { file: "Pesem, ko sta postala polnoletna.mp3", displayName: "Pesem, ko sta postala polnoletna", realName: " Enrique Iglesias - Bailando" },
-            { file: "Pesem iz el Gato mix.mp3", displayName: "Pesem iz el Gato mix", realName: "Saša Kovačević - Slučajno" },
+            { file: "Pesem iz el Gato mix.mp3", displayName: "Pesem iz el Gato mix", realName: "Saša Kovečavić - Slučajno" },
         ];
 
         const playlist = document.getElementById('playlist');
@@ -229,16 +228,18 @@
             playSong(0);
         }
 
-        function playSong(index) {
+        function playSong(index, autoplay = true) {
             currentIndex = index;
             audioPlayer.src = songs[index].file;
             
             // Try to play, handle autoplay blocking
-            const playPromise = audioPlayer.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("Autoplay blocked, user interaction needed");
-                });
+            if (autoplay) {
+                const playPromise = audioPlayer.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("Autoplay blocked, user interaction needed");
+                    });
+                }
             }
             
             currentSongDisplay.textContent = `${songs[index].displayName}`;
@@ -281,7 +282,7 @@
             if (currentIndex < songs.length - 1) {
                 currentIndex++;
                 songItems[currentIndex].classList.add('visible');
-                playSong(currentIndex);
+                playSong(currentIndex, false);
                 document.getElementById('nextBtn').style.display = 'none';
             }
         }
@@ -314,6 +315,5 @@
     </script>
 </body>
 </html>
-
 
 
