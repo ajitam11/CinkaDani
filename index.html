@@ -13,7 +13,9 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-image: url('jan-png');
+            background-repeat: repeat;
+            background-size: auto;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -136,7 +138,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎵 Music Player</h1>
+        <h1>🎵 GUESS THAT SONG 🎵</h1>
         
         <ul class="playlist" id="playlist">
            
@@ -147,13 +149,6 @@
             <audio id="audioPlayer" controls>
                 Your browser does not support the audio element.
             </audio>
-        </div>
-
-        <div class="instructions">
-            <strong>📝 How to add your MP3 files:</strong><br>
-            1. Place your MP3 files in the same folder as this HTML file<br>
-            2. Edit the <code>songs</code> array in the script below (line ~140)<br>
-            3. Add your song filenames like: "song1.mp3", "song2.mp3"
         </div>
     </div>
 
